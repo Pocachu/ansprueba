@@ -40,23 +40,15 @@ def ordenPolinomio(x,lista):
     listaResultados = []
     if x == 3:
         raicesFaltantes = factorizar(0, 0, lista[0], lista[1], lista[2])
-        listaResultados.append(raicesFaltantes[0])
-        listaResultados.append(raicesFaltantes[1])
-
-                #Si es una funcion cubica
+        listaResultados.extend(raicesFaltantes)
     elif x == 4:
         raicesFaltantes = factorizar(0,lista[0], lista[1], lista[2], lista[3])
-        listaResultados.append(raicesFaltantes[0])
-        listaResultados.append(raicesFaltantes[1])
-        listaResultados.append(raicesFaltantes[2])
-
-                #Si es una funcion cuadratica o bicuadrada
+        listaResultados.extend(raicesFaltantes)
     elif x == 5:
         raicesFaltantes = factorizar(lista[0], lista[1], lista[2], lista[3], lista[4])
-        listaResultados.append(raicesFaltantes[0])
-        listaResultados.append(raicesFaltantes[1])
-        listaResultados.append(raicesFaltantes[2])
-        listaResultados.append(raicesFaltantes[3])
+        listaResultados.extend(raicesFaltantes)
+
+    return listaResultados
 
     return listaResultados
 
@@ -70,23 +62,27 @@ def factorizarBicuadradas(a, b, c):
     cc = float(c)
 
 def factorizar(a, b, c, d, e):
-    aa = float(a)  # Cuartas
-    bb = float(b)  # Cubicas
-    cc = float(c)  # Cuadrada
-    dd = float(d)  # Normal
-    ee = float(e)  # Independiente
+    aa = float(a)
+    bb = float(b)
+    cc = float(c)
+    dd = float(d)
+    ee = float(e)
+
+    listaResultados = []
 
     if aa == 0.0 and bb == 0.0 and cc == 0.0:
-        factorizacionSimple(dd, ee)
+        return factorizacionSimple(dd, ee)
     elif aa == 0.0 and bb == 0.0:
-        listaResultado = factorizarCuadratica(cc, dd, ee)
+        return factorizarCuadratica(cc, dd, ee)
     elif bb == 0.0 and dd == 0.0:
         if a != 1:
             nuevoB = cc/aa
             nuevoC = ee/aa
-            listaResultado = factorizarBicuadradas(1, nuevoB, nuevoC)
+            return factorizarBicuadradas(1, nuevoB, nuevoC)
         else:
-            listaResultado = factorizarBicuadradas(aa, cc, ee)
+            return factorizarBicuadradas(aa, cc, ee)
+    else:
+        return []
 
 def metodoBairstow(coeficientes,r,s,cifrasSig):
 
@@ -233,3 +229,14 @@ def metodoBairstow(coeficientes,r,s,cifrasSig):
             print("Surgio un problema")
         
         return Solucion_Listado
+
+# Definición de la función exponencial
+funcion_expresion = x**4 + x**3 + 7*x**2 - x + 6
+
+# Obtener los coeficientes de la expresión
+coeficientes = sp.Poly(funcion_expresion, x).all_coeffs()
+
+# Llamar a la función metodoBairstow con los coeficientes obtenidos
+resultado = metodoBairstow(coeficientes, 1, 1.2, 0.05)
+
+print(resultado)
