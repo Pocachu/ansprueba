@@ -1,75 +1,74 @@
 import sympy as sp
-import math
 
-x, e, y, z = sp.symbols('x e y z')
+def muller(f, f_prime, x0, x1, tol=1e-5, max_iter=100):
+    """
+    Encuentra una raíz de la función f utilizando el método de Müller.
 
-def Sustituir_y_Evaluar_Funcion(funcion, valor, seDeriva, ordenDerivada):
-    try:
-        if seDeriva == 1:
-            funcioon = sp.sympify(funcion)
-            gxValor = sp.diff(funcioon, x, ordenDerivada).subs([(x, valor), (e, math.e)])
-            return gxValor
+    Parámetros:
+    f (function): La función para la que se busca la raíz.
+    f_prime (function): La derivada de la función f.
+    x0 (float): El primer punto de partida.
+    x1 (float): El segundo punto de partida.
+    tol (float, optional): La tolerancia para la precisión. Defaults to 1e-5.
+    max_iter (int, optional): El máximo número de iteraciones. Defaults to 100.
+
+    Returns:
+    float: La raíz encontrada.
+    """
+    for _ in range(max_iter):
+        # Calcular los valores de la función en los puntos de partida
+        f0 = f(x0)
+        f1 = f(x1)
+
+        # Calcular la derivada en los puntos de partida
+        f0_prime = f_prime(x0)
+        f1_prime = f_prime(x1)
+
+        # Calcular el valor de la función en el punto medio
+        x2 = (x0 * f1 * f1_prime - x1 * f0 * f0_prime) / (f1 * f1_prime - f0 * f0_prime)
+
+        # Calcular el valor de la función en el punto medio
+        f2 = f(x2)
+
+        # Verificar si se ha alcanzado la tolerancia
+        if abs(f2) < tol:
+            return x2
+
+        # Actualizar los puntos de partida
+        if f2 * f1 < 0:
+            x0, x1 = x1, x2
         else:
-            resultado = sp.sympify(funcion).subs([(x, valor), (e, math.e)])
-            return resultado
-    except:
-        return "Error"
+            x0, x1 = x2, x2 + (x1 - x0)
 
-def Calculo_Ea(xr, xrAnterior):
-    resultado = abs((xr - xrAnterior) / xr) * 100
-    return abs(resultado) if resultado.is_real else abs(resultado.evalf())
+    # Si no se ha alcanzado la tolerancia, se devuelve el último punto de partida
+    return x1
 
-def metodoMuller(funcion, valor0, valor1, valor2, cifrasSignificativas):
-    Solucion_Listado = []
-    header = ["Iteracion", "X0", "X1", "X2", "Xr", "EA"]
-    Solucion_Listado.append(header)
+# Solicitar el grado de la función al usuario
+grado = int(input("Introduzca el grado de la función: "))
 
-    iteracion = 0
-    x0 = float(valor0)
-    x1 = float(valor1)
-    x2 = float(valor2)
+# Solicitar los coeficientes del polinomio al usuario
+coeficientes = []
+for i in range(grado, -1, -1):
+    coef = float(input(f"Introduzca el coeficiente de x^{i}: "))
+    coeficientes.append(coef)
 
-    cifr = int(cifrasSignificativas)
-    xr = 0.0
-    ea = 0
-    es = 0.5 * (10 ** (2 - cifr))
-    salida = 0
+# Crear la función polinómica usando sympy
+x = sp.symbols('x')
+polinomio = sum(coef * x**i for i, coef in enumerate(reversed(coeficientes)))
 
-    while salida == 0:
-        iteracion += 1
+# Calcular la derivada del polinomio
+polinomio_derivada = sp.diff(polinomio, x)
 
-        fx0 = Sustituir_y_Evaluar_Funcion(funcion, x0, 0, 0)
-        fx1 = Sustituir_y_Evaluar_Funcion(funcion, x1, 0, 0)
-        fx2 = Sustituir_y_Evaluar_Funcion(funcion, x2, 0, 0)
+# Convertir la función y su derivada en funciones lambda
+f = sp.lambdify(x, polinomio, 'math')
+f_prime = sp.lambdify(x, polinomio_derivada, 'math')
 
-        h0 = x1 - x0
-        h1 = x2 - x1
+# Solicitar los datos adicionales al usuario
+x0 = float(input("Introduzca el primer punto de partida (x0): "))
+x1 = float(input("Introduzca el segundo punto de partida (x1): "))
+tol = float(input("Introduzca la tolerancia para la precisión (por defecto 1e-5): ") or 1e-5)
+max_iter = int(input("Introduzca el máximo número de iteraciones (por defecto 100): ") or 100)
 
-        ampersand0 = (fx1 - fx0) / h0
-        ampersand1 = (fx2 - fx1) / h1
-
-        a = (ampersand1 - ampersand0) / (h1 + h0)
-        b = a * h1 + ampersand1
-        c = fx2
-
-        d = ((b ** 2) - (4 * a * c)) ** 0.5
-
-        if abs(b + d) > abs(b - d):
-            xr = x2 + (-2 * c) / (b + d)
-        else:
-            xr = x2 + (-2 * c) / (b - d)
-
-        ea = Calculo_Ea(xr, x2)
-
-        Solucion_Listado.append([iteracion, x0, x1, x2, xr, ea])
-
-        if ea <= es:
-            salida = 1
-        else:
-            x0 = x1
-            x1 = x2
-            x2 = xr
-
-    return Solucion_Listado
-
-print(metodoMuller(x**3 - 13*x - 12, 4.5, 5.5, 5, 0.05))
+# Encontrar la raíz utilizando el método de Müller
+root = muller(f, f_prime, x0, x1, tol, max_iter)
+print("Raíz encontrada:", root)
